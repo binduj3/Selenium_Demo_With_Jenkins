@@ -1,0 +1,35 @@
+# Local Selenium Grid with Chrome, Edge and Firefox nodes.
+#   docker compose up -d
+#   mvn test -Dbrowser=firefox -DgridUrl=http://localhost:4444
+#   Grid UI: http://localhost:4444/ui     (watch sessions live: click the camera icon, password "secret")
+#   docker compose down
+services:
+  selenium-hub:
+    image: selenium/hub:latest
+    ports:
+      - "4442:4442"
+      - "4443:4443"
+      - "4444:4444"
+
+  chrome:
+    image: selenium/node-chrome:latest
+    shm_size: 2gb
+    depends_on: [selenium-hub]
+    environment: &node-env
+      SE_EVENT_BUS_HOST: selenium-hub
+      SE_EVENT_BUS_PUBLISH_PORT: "4442"
+      SE_EVENT_BUS_SUBSCRIBE_PORT: "4443"
+      SE_NODE_MAX_SESSIONS: "3"
+      SE_NODE_OVERRIDE_MAX_SESSIONS: "true"
+
+  edge:
+    image: selenium/node-edge:latest   # x86_64 only (no Apple Silicon / ARM image)
+    shm_size: 2gb
+    depends_on: [selenium-hub]
+    environment: *node-env
+
+  firefox:
+    image: selenium/node-firefox:latest
+    shm_size: 2gb
+    depends_on: [selenium-hub]
+    environment: *node-env
